@@ -1,20 +1,25 @@
+//если просто записывать в буфер символы а потом записать EOF, то все символы до этого забываются и происходит потеря последней строчки
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
+#include "assert_canary.h"
+
+#define SMALL_LETTER 0
+#define BIG_LETTER 1
 
 const int MAX_STR = 100;
 const int MAX_NUMBER_OF_STR = 100;
 
 int read_from_file(const char* restrict name, char text[][MAX_STR]);
-char* fgets(char* s, int size, FILE* stream);
+char* my_fgets(char* s, int size, FILE* stream);
 
-void print_strings (char data[][MAX_STR], int number_of_str, const char* restrict name);
+void print_strings(char data[][MAX_STR], int number_of_str, const char* restrict name);
 int my_fputs(const char str[], FILE* stream);
 
 int strings_compare(const void* value1, const void* value2);
-int my_strcmp (const char* str1, const char* str2);
+int my_strcmp(const char* str1, const char* str2);
 
 void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const void* value1, const void* value2));
 
@@ -23,9 +28,13 @@ void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const v
 int main()
 {
     char text[MAX_NUMBER_OF_STR][MAX_STR] = {};
+
     int number_of_str = read_from_file("input.txt", text);
-    //printf("number of str: %i\n", number_of_str);
+    printf("last line: %s", text[number_of_str - 1]);
+    printf("number of str: %i\n", number_of_str);
     //printf("%i line before sort: %s\n", 1, text[0]);
+
+    //*((char*)((size_t)text + MAX_STR*sizeof(char)*(number_of_str+1))) = '\x01';
 
     my_qsort(text, number_of_str, MAX_STR*sizeof(char), strings_compare);
     print_strings(text, number_of_str, "output.txt");
@@ -38,27 +47,32 @@ int read_from_file(const char* restrict name, char text[][MAX_STR])
 {
     FILE* file = fopen(name, "r");
     int number_of_lines = 0;
-    while (fgets(text[number_of_lines++], MAX_STR, file) != NULL) {}
+    while (my_fgets(text[number_of_lines++], MAX_STR, file) != NULL) {}
         //printf("%i line: %s\n", number_of_lines-1, text[number_of_lines-1]);
     fclose(file);
-    return number_of_lines - 1;
+    //printf("last str in file:%s", text[number_of_lines - 1]);
+    return number_of_lines;
 }
 
-char* fgets(char* s, int size, FILE* stream)
+char* my_fgets(char* s, int size, FILE* stream)
 {
     int i = 0;
-    while (i < size && (*((int*)((size_t)s+i*sizeof(char))) = fgetc(stream)) != EOF)
+    int symbol = '\0';
+    while (i < size && (symbol = fgetc(stream)) != EOF)
     {
+        *((int*)((size_t)s+i*sizeof(char))) = symbol;
         if (*((char*)((size_t)s+i*sizeof(char))) == '\n')
         {
-            *((char*)((size_t)s+i*sizeof(char))) = '\0';
+            i++;
+            *((char*)((size_t)s+(i)*sizeof(char))) = '\0';
             break;
         }
         i++;
     }
-    if (*((int*)((size_t)s+i*sizeof(char))) == EOF)
+    if (symbol == EOF)
     {
-        *((char*)((size_t)s+i*sizeof(char))) = '\0';
+        *((char*)((size_t)s+i*sizeof(char))) = '\n';
+        *((char*)((size_t)s+(i+1)*sizeof(char))) = '\0';
         return NULL;
     }
     //printf("number of symbols: %i\n", i);
@@ -68,6 +82,7 @@ char* fgets(char* s, int size, FILE* stream)
 void print_strings (char data[][MAX_STR], int number_of_str, const char* restrict name)
 { 
     FILE* file = fopen(name, "w");
+    //printf("number_of_str in print_strings: %i", number_of_str);
     for (int i = 0; i < number_of_str; i++)
     {
         my_fputs(data[i], file);
@@ -83,7 +98,6 @@ int my_fputs(const char* str, FILE* stream)
         i++;
         fputc(c, stream);
     }
-    fputc('\n', stream);
     return 0;
 }
 
@@ -92,17 +106,43 @@ int strings_compare(const void* value1, const void* value2)
     char* value1_res = (char*)value1;
     char* value2_res = (char*)value2;
 
-    return strcmp(value1_res, value2_res);
+    return my_strcmp(value1_res, value2_res);
 }
 
 int my_strcmp (const char *str1, const char *str2)
 {
     int i = 0;
-    while (str1[i] != '\0' || str2[i] != '\0')
+    int j = 0;
+    while (str1[i] != '\0' || str2[j] != '\0')
     {
-        if (str1[i] < str2[i]){ return -1;}
-        if (str1[i] > str2[i++]){ return 1;}
-        if (str1[i] == '\0' && str2[i] == '\0'){ return 0;}
+        char symbol1 = str1[i];
+        char symbol2 = str2[j];
+
+        if ('A' <= str1[i] && str1[i] <= 'Z')
+        {
+            symbol1 += 'a' - 'A';
+        }
+        if ('A' <= str2[j] && str2[j] <= 'Z')
+        {
+            symbol2 += 'a' - 'A';
+        }
+
+        if (!('a' <= symbol1 && symbol1 <= 'z') && symbol1 != '\0')
+        {
+            i++;
+            continue;
+        }
+        if (!('a' <= symbol2 && symbol2 <= 'z') && symbol2 != '\0')
+        {
+            j++;
+            continue;
+        }
+
+        if (symbol1 < symbol2){ return -1;}
+        if (symbol1 > symbol2){ return 1;}
+        if (symbol1 == '\0' && symbol2 == '\0'){ return 0;}
+        i++;
+        j++;
     }
 }
 
