@@ -24,7 +24,8 @@ void go_free(void* ptr, size_t size);
 
 int main()
 {
-    int fd = _open("input.txt", _O_RDONLY, _O_BINARY);
+    int fd = _open("input.txt", _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
+    
     if (fd == -1) {
         perror("Не удалось открыть файл");
         return 1;
@@ -37,16 +38,18 @@ int main()
         return 1;
     }
 
-    size_t file_size = file_info.st_size; //+2 под \0 и под канарейку
-    char* buffer = (char* )calloc(file_size + 2, sizeof(char)); //+2 под \0 и под канарейку
+    size_t file_size = file_info.st_size + 2*sizeof(char); //+2 под \0 и под канарейку
+    char* buffer = (char* )calloc(file_size, sizeof(char));
     if (buffer == NULL)
     {
         _close(fd);
         return 1;
     }
 
-    int bytes_read = _read(fd, buffer, (unsigned int)file_size);
-    if (bytes_read == 1)
+    //printf("file_size: %llu\n", file_size);
+
+    int bytes_read = _read(fd, buffer, (unsigned int)(file_size - 2*sizeof(char)));
+    if (bytes_read == -1)
     {
         perror("Ошибка при чтении файлов через _read");
         free(buffer);
@@ -54,10 +57,19 @@ int main()
         return 1;
     }
 
+    //printf("file_size: %llu\n", file_size);
+    //
+    //printf("bytes read: %i\n", bytes_read);
+
     _close(fd);
 
-    buffer[file_size] = '\0';
-    buffer[file_size + 1] = '\0';
+    buffer[file_size - 2] = '\0';
+    buffer[file_size - 1] = '\0';
+
+    /*for (int i = 0 ; i < file_size; i++)
+    {
+        printf("%c", buffer[i]);
+    }*/
 
     int number_of_str = 0;
 
@@ -65,14 +77,19 @@ int main()
     {
         if (buffer[i] == '\r')
         {
-            buffer[i] = '\0';
+            buffer[i] = '\n';
+            number_of_str++;
         }
         else if (buffer[i] == '\n')
         {
             buffer[i] = '\0';
-            number_of_str++;
         }
     }
+
+    /*for (int i = 0 ; i < file_size; i++)
+    {
+        printf("%c", buffer[i]);
+    }*/
 
     char** order_array = (char**)calloc(number_of_str, sizeof(char*));
     order_array[0] = buffer;
@@ -80,9 +97,9 @@ int main()
 
     for (int i = 0; i < file_size/sizeof(char); i++)
     {
-        if (buffer[i] == '\0' && (i + 1) < file_size/sizeof(char) && ord_arr_position < number_of_str)
+        if (buffer[i] == '\n' && (i + 2) < file_size/sizeof(char))
         {
-            order_array[ord_arr_position++] = (char*)((size_t)buffer + (i + 1)*sizeof(char));
+            order_array[ord_arr_position++] = &buffer[i + 2];
         }
     }
 
@@ -91,7 +108,7 @@ int main()
     //printf("%i line before sort: %s\n", 1, order_array[0]);
     /*for (int i = 0; i < number_of_str; i++)
     {
-        printf("%i line: %s", i, order_array[i]);
+        printf("%i line: %s", i + 1, order_array[i]);
     }*/
 
     my_qsort(order_array, number_of_str, sizeof(char*), strings_compare);
@@ -112,11 +129,12 @@ int main()
 void print_strings (char** order_array, int number_of_str, const char* restrict name)
 { 
     FILE* file = fopen(name, "w");
+    
     //printf("number_of_str in print_strings: %i", number_of_str);
     for (int i = 0; i < number_of_str; i++)
     {
         my_fputs(order_array[i], file);
-        fputc('\n', file);
+        //fputc('\n', file);
     }
 }
 
