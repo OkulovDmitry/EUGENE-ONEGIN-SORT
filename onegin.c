@@ -63,8 +63,13 @@ int main()
 
     for (int i = 0; i < file_size/sizeof(char); i++)
     {
-        if (buffer[i] == '\n')
+        if (buffer[i] == '\r')
         {
+            buffer[i] = '\0';
+        }
+        else if (buffer[i] == '\n')
+        {
+            buffer[i] = '\0';
             number_of_str++;
         }
     }
@@ -75,9 +80,9 @@ int main()
 
     for (int i = 0; i < file_size/sizeof(char); i++)
     {
-        if (buffer[i] == '\n' && buffer[i + 1] != '\0')
+        if (buffer[i] == '\0' && (i + 1) < file_size/sizeof(char) && ord_arr_position < number_of_str)
         {
-            order_array[ord_arr_position] = (char*)((size_t)buffer + i*sizeof(char));
+            order_array[ord_arr_position++] = (char*)((size_t)buffer + (i + 1)*sizeof(char));
         }
     }
 
@@ -99,10 +104,7 @@ int main()
     print_strings(order_array, number_of_str, "output.txt");
     //printf("%i line after sort: %s\n", number_of_str, order_array[number_of_str - 1]);
     
-    for (int i = 0; i < number_of_str; i++)
-    {
-        free(order_array[i]);
-    }
+    
 
     return 0;
 }
@@ -114,6 +116,7 @@ void print_strings (char** order_array, int number_of_str, const char* restrict 
     for (int i = 0; i < number_of_str; i++)
     {
         my_fputs(order_array[i], file);
+        fputc('\n', file);
     }
 }
 
