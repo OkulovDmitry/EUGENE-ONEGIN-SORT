@@ -17,63 +17,18 @@
 //onst int MAX_STR = 50;
 //const int MAX_NUMBER_OF_STR = 100;
 
-//int read_from_file(FILE* file, char* buffer);
+char* read_from_file(char* name);
 void print_strings(char** order_array, int number_of_str, const char* restrict name);
 int strings_compare(const void* value1, const void* value2);
 void go_free(void* ptr, size_t size);
 
 int main()
 {
-    int fd = _open("input.txt", _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
-    
-    if (fd == -1) {
-        perror("Не удалось открыть файл");
-        return 1;
-    }
-    struct _stat file_info;
-    if (_fstat(fd, &file_info) != 0)
-    {
-        perror("Ошибка при вызове _fstat");
-        _close(fd);
-        return 1;
-    }
-
-    size_t file_size = file_info.st_size + 2*sizeof(char); //+2 под \0 и под канарейку
-    char* buffer = (char* )calloc(file_size, sizeof(char));
-    if (buffer == NULL)
-    {
-        _close(fd);
-        return 1;
-    }
-
-    //printf("file_size: %llu\n", file_size);
-
-    int bytes_read = _read(fd, buffer, (unsigned int)(file_size - 2*sizeof(char)));
-    if (bytes_read == -1)
-    {
-        perror("Ошибка при чтении файлов через _read");
-        free(buffer);
-        _close(fd);
-        return 1;
-    }
-
-    //printf("file_size: %llu\n", file_size);
-    //
-    //printf("bytes read: %i\n", bytes_read);
-
-    _close(fd);
-
-    buffer[file_size - 2] = '\0';
-    buffer[file_size - 1] = '\0';
-
-    /*for (int i = 0 ; i < file_size; i++)
-    {
-        printf("%c", buffer[i]);
-    }*/
+    char* buffer = read_from_file("input.txt"); // как то передавал неициализированную хрень
 
     int number_of_str = 0;
 
-    for (int i = 0; i < file_size/sizeof(char); i++)
+    for (int i = 0; i < sizeof(buffer)/sizeof(char); i++)
     {
         if (buffer[i] == '\r')
         {
@@ -95,9 +50,9 @@ int main()
     order_array[0] = buffer;
     int ord_arr_position = 1;
 
-    for (int i = 0; i < file_size/sizeof(char); i++)
+    for (int i = 0; i < sizeof(buffer)/sizeof(char); i++)
     {
-        if (buffer[i] == '\n' && (i + 2) < file_size/sizeof(char))
+        if (buffer[i] == '\n' && (i + 2) < sizeof(buffer)/sizeof(char))
         {
             order_array[ord_arr_position++] = &buffer[i + 2];
         }
@@ -124,6 +79,57 @@ int main()
     
 
     return 0;
+}
+
+char* read_from_file(char* name)
+{
+    int fd = _open(name, _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
+    
+    if (fd == -1) {
+        perror("Не удалось открыть файл");
+        exit(1);
+    }
+    struct _stat file_info;
+    if (_fstat(fd, &file_info) != 0)
+    {
+        perror("Ошибка при вызове _fstat");
+        _close(fd);
+        exit(1);
+    }
+
+    size_t file_size = file_info.st_size + 2*sizeof(char); //+2 под \0 и под канарейку
+    char* buffer_not_original = (char* )calloc(file_size, sizeof(char));
+    if (buffer_not_original == NULL)
+    {
+        _close(fd);
+        exit(1);
+    }
+
+    //printf("file_size: %llu\n", file_size);
+
+    int bytes_read = _read(fd, buffer_not_original, (unsigned int)(file_size - 2*sizeof(char)));
+    if (bytes_read == -1)
+    {
+        perror("Ошибка при чтении файлов через _read");
+        free(buffer_not_original);
+        _close(fd);
+        exit(1);
+    }
+
+    //printf("file_size: %llu\n", file_size);
+    //printf("bytes read: %i\n", bytes_read);
+
+    _close(fd);
+
+    buffer_not_original[file_size - 2] = '\0';
+    buffer_not_original[file_size - 1] = '\0';
+
+    /*for (int i = 0 ; i < file_size; i++)
+    {
+        printf("%c", buffer_not_original[i]);
+    }*/
+
+    return buffer_not_original;
 }
 
 void print_strings (char** order_array, int number_of_str, const char* restrict name)
