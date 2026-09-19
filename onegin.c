@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
+#include <io.h> // Для _open, _read, _close
+#include <fcntl.h>    // Для флагов открытия (типа _O_RDONLY, _O_BINARY)
+#include <sys/stat.h> // для макросов прав доступа
 #include "assert_canary.h"
 #include "my_qsort.h"
 #include "str_functions.h"
@@ -11,19 +14,73 @@
 #define SMALL_LETTER 0
 #define BIG_LETTER 1
 
-const int MAX_STR = 50;
-const int MAX_NUMBER_OF_STR = 100;
+//onst int MAX_STR = 50;
+//const int MAX_NUMBER_OF_STR = 100;
 
-int read_from_file(const char* restrict name, char** order_array);
+//int read_from_file(FILE* file, char* buffer);
 void print_strings(char** order_array, int number_of_str, const char* restrict name);
 int strings_compare(const void* value1, const void* value2);
 void go_free(void* ptr, size_t size);
 
 int main()
 {
-    char* order_array[MAX_NUMBER_OF_STR] = {};
+    int fd = _open("input.txt", _O_RDONLY, _O_BINARY);
+    if (fd == -1) {
+        perror("Не удалось открыть файл");
+        return 1;
+    }
+    struct _stat file_info;
+    if (_fstat(fd, &file_info) != 0)
+    {
+        perror("Ошибка при вызове _fstat");
+        _close(fd);
+        return 1;
+    }
 
-    int number_of_str = read_from_file("input.txt", order_array);
+    size_t file_size = file_info.st_size; //+2 под \0 и под канарейку
+    char* buffer = (char* )calloc(file_size + 2, sizeof(char)); //+2 под \0 и под канарейку
+    if (buffer == NULL)
+    {
+        _close(fd);
+        return 1;
+    }
+
+    int bytes_read = _read(fd, buffer, (unsigned int)file_size);
+    if (bytes_read == 1)
+    {
+        perror("Ошибка при чтении файлов через _read");
+        free(buffer);
+        _close(fd);
+        return 1;
+    }
+
+    _close(fd);
+
+    buffer[file_size] = '\0';
+    buffer[file_size + 1] = '\0';
+
+    int number_of_str = 0;
+
+    for (int i = 0; i < file_size/sizeof(char); i++)
+    {
+        if (buffer[i] == '\n')
+        {
+            number_of_str++;
+        }
+    }
+
+    char** order_array = (char**)calloc(number_of_str, sizeof(char*));
+    order_array[0] = buffer;
+    int ord_arr_position = 1;
+
+    for (int i = 0; i < file_size/sizeof(char); i++)
+    {
+        if (buffer[i] == '\n' && buffer[i + 1] != '\0')
+        {
+            order_array[ord_arr_position] = (char*)((size_t)buffer + i*sizeof(char));
+        }
+    }
+
     //printf("last line: %s", order_array[number_of_str - 1]);
     //printf("number of str: %i\n", number_of_str);
     //printf("%i line before sort: %s\n", 1, order_array[0]);
@@ -48,21 +105,6 @@ int main()
     }
 
     return 0;
-}
-
-int read_from_file(const char* restrict name, char** order_array)
-{
-    FILE* file = fopen(name, "r");
-    int number_of_lines = 0;
-    char buffer[MAX_STR];
-    while (my_fgets(buffer, MAX_STR, file) != NULL) //после последней строки в input.txt нужен \n, иначе при выводе последняя строка склеится с той, которая выводится после неё
-    {
-        order_array[number_of_lines] = strdup(buffer);
-        number_of_lines++;
-    }
-
-    fclose(file);
-    return number_of_lines;
 }
 
 void print_strings (char** order_array, int number_of_str, const char* restrict name)
