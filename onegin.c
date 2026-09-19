@@ -5,39 +5,47 @@
 #include <stdint.h>
 #include <time.h>
 #include "assert_canary.h"
+#include "my_qsort.h"
 
 #define SMALL_LETTER 0
 #define BIG_LETTER 1
 
-const int MAX_STR = 100;
+const int MAX_STR = 50;
 const int MAX_NUMBER_OF_STR = 100;
 
 int read_from_file(const char* restrict name, char text[][MAX_STR]);
 char* my_fgets(char* s, int size, FILE* stream);
 
-void print_strings(char data[][MAX_STR], int number_of_str, const char* restrict name);
+void print_strings(char** order_array, int number_of_str, const char* restrict name);
 int my_fputs(const char str[], FILE* stream);
 
 int strings_compare(const void* value1, const void* value2);
 int my_strcmp(const char* str1, const char* str2);
 
-void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const void* value1, const void* value2));
-
-
-
 int main()
 {
     char text[MAX_NUMBER_OF_STR][MAX_STR] = {};
+    char* order_array[MAX_NUMBER_OF_STR] = {};
+    for (int i = 0; i < MAX_NUMBER_OF_STR; i++)
+    {
+        order_array[i] = (char*)(((size_t)text + i*MAX_STR));
+    }
 
     int number_of_str = read_from_file("input.txt", text);
-    printf("last line: %s", text[number_of_str - 1]);
-    printf("number of str: %i\n", number_of_str);
+    //printf("last line: %s", text[number_of_str - 1]);
+    //printf("number of str: %i\n", number_of_str);
     //printf("%i line before sort: %s\n", 1, text[0]);
 
     //*((char*)((size_t)text + MAX_STR*sizeof(char)*(number_of_str+1))) = '\x01';
 
-    my_qsort(text, number_of_str, MAX_STR*sizeof(char), strings_compare);
-    print_strings(text, number_of_str, "output.txt");
+    my_qsort(order_array, number_of_str, sizeof(char*), strings_compare);
+
+    /*for (int i = 0; i < number_of_str; i++)
+    {
+        printf("%llu\n", order_array[i]);
+    }*/
+
+    print_strings(order_array, number_of_str, "output.txt");
     //printf("%i line after sort: %s\n", 2, text[1]);
     
     return 0;
@@ -79,13 +87,13 @@ char* my_fgets(char* s, int size, FILE* stream)
     return s;
 }
 
-void print_strings (char data[][MAX_STR], int number_of_str, const char* restrict name)
+void print_strings (char** order_array, int number_of_str, const char* restrict name)
 { 
     FILE* file = fopen(name, "w");
     //printf("number_of_str in print_strings: %i", number_of_str);
     for (int i = 0; i < number_of_str; i++)
     {
-        my_fputs(data[i], file);
+        my_fputs(order_array[i], file);
     }
 }
 
@@ -103,8 +111,8 @@ int my_fputs(const char* str, FILE* stream)
 
 int strings_compare(const void* value1, const void* value2)
 {
-    char* value1_res = (char*)value1;
-    char* value2_res = (char*)value2;
+    char* value1_res = *((char**)value1);
+    char* value2_res = *((char**)value2);
 
     return my_strcmp(value1_res, value2_res);
 }
@@ -143,53 +151,5 @@ int my_strcmp (const char *str1, const char *str2)
         if (symbol1 == '\0' && symbol2 == '\0'){ return 0;}
         i++;
         j++;
-    }
-}
-
-void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const void* value1, const void* value2))
-{
-    if (nmemb > 1)
-    {
-        int64_t i = -1;
-        int64_t j = (int64_t)nmemb;
-        unsigned char pivot[size];
-
-        int64_t rand_pivot = (nmemb-1)/2;
-        
-        for (int i = 0; i < size; i++)
-        {
-            pivot[i] = *((unsigned char* restrict)((size_t)(arr) + size*(rand_pivot) + i));
-        }
-
-        while (i < j)
-        {
-            do
-            {
-                i++;
-            } while (compare_ptr((void*)((size_t)arr + size*i), pivot) == -1);
-
-            do
-            {
-                j--;
-            } while (compare_ptr((void*)((size_t)arr + size*j), pivot) == 1);
-
-            if (i >= j)
-            {
-                break;
-            }
-            
-            unsigned char a = '\0';
-
-            for (int k = 0; k < size; k++)
-            {
-                a = *((unsigned char* restrict)((size_t)arr + size*i + k));
-                *((unsigned char* restrict)((size_t)arr + size*i + k)) = *((unsigned char* restrict)((size_t)arr + size*j + k));
-                *((unsigned char* restrict)((size_t)arr + size*j + k)) = a;
-            }
-        }
-
-        void* right_arr = (void*)((size_t)arr + size*(j+1));
-        my_qsort(arr,             j+1, size, compare_ptr);
-        my_qsort(right_arr, nmemb-j-1, size, compare_ptr);
     }
 }
