@@ -25,39 +25,48 @@ struct all_data_and_file_operations
     char* file_buffer;
     int number_of_str;
     char** order_array;
-    void (*read_from_file)(char* name, struct  all_data_and_file_operations* file_name);
+    void (*read_from_file)(const char* restrict name, struct  all_data_and_file_operations* file_name);
     void (*break_down_buffer)(struct all_data_and_file_operations* file_name);
+    int (*strings_compare)(const void* value1, const void* value2);
+    const char* restrict name_of_output_file;
 };
 
-void read_from_file(char* name, struct  all_data_and_file_operations* file_name);
+void read_from_file(const char* restrict name, struct  all_data_and_file_operations* file_name);
 void break_down_buffer(struct all_data_and_file_operations* file_name);
 void print_strings(char** order_array, int number_of_str, const char* restrict name);
-int strings_compare(const void* value1, const void* value2);
+int forward_strings_compare(const void* value1, const void* value2);
+int reverse_strings_compare(const void* value1, const void* value2);
 void go_free(void* ptr, size_t size);
 
 int main()
 {
-    struct all_data_and_file_operations file_onegin = {0, 0, NULL, 0, NULL, read_from_file, break_down_buffer};
+    struct all_data_and_file_operations forward_file_onegin = {0, 0, NULL, 0, NULL, read_from_file, break_down_buffer, forward_strings_compare, "forward_output.txt"};
     //printf("BEGIN!\n");
-    file_onegin.read_from_file("input.txt", &file_onegin); // как то передавал неициализированную хрень
+    forward_file_onegin.read_from_file("input.txt", &forward_file_onegin); // как то передавал неициализированную хрень
     //printf("I READ!\n");
-    file_onegin.break_down_buffer(&file_onegin);
+    forward_file_onegin.break_down_buffer(&forward_file_onegin);
     //printf("I BREAK DOWN BUFFER!\n");
+    struct all_data_and_file_operations reverse_file_onegin = forward_file_onegin;
+    reverse_file_onegin.strings_compare = reverse_strings_compare;
+    reverse_file_onegin.name_of_output_file = "reverse_output.txt";
+    reverse_file_onegin.order_array = (char**)calloc(forward_file_onegin.number_of_str, sizeof(char*));
+    memcpy(reverse_file_onegin.order_array, forward_file_onegin.order_array, forward_file_onegin.number_of_str * sizeof(char*));
 
-    my_qsort(file_onegin.order_array, file_onegin.number_of_str, sizeof(char*), strings_compare);
+    //printf("INITIALITATION END");
+    my_qsort(forward_file_onegin.order_array, forward_file_onegin.number_of_str, sizeof(char*), forward_file_onegin.strings_compare);
+    //printf("i SORT FORWARD");
+    print_strings(forward_file_onegin.order_array, forward_file_onegin.number_of_str, "forward_output.txt");
 
-    /*for (int i = 0; i < file_onegin.number_of_str; i++)
-    {
-        printf("%llu\n", file_onegin.order_array[i]);
-    }*/
+    my_qsort(reverse_file_onegin.order_array, reverse_file_onegin.number_of_str, sizeof(char*), reverse_file_onegin.strings_compare);
+    //printf("I SORT REVERSE");
 
-    print_strings(file_onegin.order_array, file_onegin.number_of_str, "output.txt");
+    print_strings(reverse_file_onegin.order_array, reverse_file_onegin.number_of_str, "reverse_output.txt");
     //printf("%i line after sort: %s\n", number_of_str, order_array[number_of_str - 1]);
 
     return 0;
 }
 
-void read_from_file(char* name, struct all_data_and_file_operations* file_name)
+void read_from_file(const char* restrict name, struct all_data_and_file_operations* file_name)
 {
     int fd = _open(name, _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
     
@@ -159,12 +168,30 @@ void print_strings (char** order_array, int number_of_str, const char* restrict 
     fclose(file);
 }
 
-int strings_compare(const void* value1, const void* value2)
+int forward_strings_compare(const void* value1, const void* value2)
 {
     char* value1_res = *((char**)value1);
     char* value2_res = *((char**)value2);
 
-    return my_strcmp(value1_res, value2_res);
+    int start_index1 = 0, start_index2 = 0;
+    int step = 1;
+
+    return my_strcmp(value1_res, start_index1, value2_res, start_index2, step);
+}
+
+int reverse_strings_compare(const void* value1, const void* value2)
+{
+    //printf("I in reverse_strings_compare");
+
+    char* value1_res = *((char**)value1);
+    char* value2_res = *((char**)value2);
+
+    int start_index1 = 0, start_index2 = 0;
+    while (value1_res[start_index1] != '\0') {start_index1++;}
+    while (value2_res[start_index2] != '\0') {start_index2++;}
+    int step = -1;
+
+    return my_strcmp(value1_res, start_index1, value2_res, start_index2, step);
 }
 
 void go_free(void* ptr, size_t size)

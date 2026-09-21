@@ -34,40 +34,58 @@ int my_fputs(const char* str, FILE* stream)
     return 0;
 }
 
-int my_strcmp (const char *str1, const char *str2)
+int my_strcmp (const char* str1, int start_index1, const char* str2, int start_index2, int step)
 {
-    int i = 0;
-    int j = 0;
-    while (str1[i] != '\0' || str2[j] != '\0')
-    {
-        char symbol1 = str1[i];
-        char symbol2 = str2[j];
+    size_t size1 = 0, size2 = 0;
 
-        if ('A' <= str1[i] && str1[i] <= 'Z')
+    //printf("first str: ");
+    while (str1[size1] != '\0') {size1++; /*printf("%c", /str1[size1 - 1]);*/}
+    //printf("second str: ");
+    while (str2[size2] != '\0') {size2++;/* printf("%c", str2[size1 - 1]);*/}
+
+    if (size1 == 0 && size2 == 0) return 0;
+    if (size1 == 0) return -1;
+    if (size2 == 0) return 1;
+
+    //printf("\nstart_index1 = %i ", start_index1);
+    //printf("start-index2 = %i\n", start_index2);
+
+    while (1)
+    {
+        int stop1 = start_index1 < 0 || start_index1 > size1;
+        int stop2 = start_index1 < 0 || start_index2 > size2;
+
+        if (stop1 && stop2) {return 0;}
+        if (stop1) {return -1;}
+        if (stop2) {return 1;}
+
+        char symbol1 = str1[start_index1];
+        char symbol2 = str2[start_index2];
+
+        if ('A' <= str1[start_index1] && str1[start_index1] <= 'Z')
         {
             symbol1 += 'a' - 'A';
         }
-        if ('A' <= str2[j] && str2[j] <= 'Z')
+        if ('A' <= str2[start_index2] && str2[start_index2] <= 'Z')
         {
             symbol2 += 'a' - 'A';
         }
 
         if (!('a' <= symbol1 && symbol1 <= 'z') && symbol1 != '\0')
         {
-            i++;
+            start_index1 += step;
             continue;
         }
         if (!('a' <= symbol2 && symbol2 <= 'z') && symbol2 != '\0')
         {
-            j++;
+            start_index2 += step;
             continue;
         }
 
-        if (symbol1 < symbol2){ return -1;}
-        if (symbol1 > symbol2){ return 1;}
-        if (symbol1 == '\0' && symbol2 == '\0'){ return 0;}
-        i++;
-        j++;
+        if (symbol1 < symbol2){ return -1; printf("strcmp return -1\n");}
+        if (symbol1 > symbol2){ return 1; printf("strcmp return 1\n");}
+        start_index1 += step;
+        start_index2 += step;
     }
 }
 
