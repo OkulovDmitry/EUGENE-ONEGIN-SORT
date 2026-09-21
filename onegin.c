@@ -1,3 +1,4 @@
+// в input после последней строчки всегда enter
 //если просто записывать в буфер символы а потом записать EOF, то все символы до этого забываются и происходит потеря последней строчки
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,71 +18,46 @@
 //onst int MAX_STR = 50;
 //const int MAX_NUMBER_OF_STR = 100;
 
-char* read_from_file(char* name);
+struct all_data_and_file_operations
+{
+    size_t file_size;
+    int bytes_read;
+    char* file_buffer;
+    int number_of_str;
+    char** order_array;
+    void (*read_from_file)(char* name, struct  all_data_and_file_operations* file_name);
+    void (*break_down_buffer)(struct all_data_and_file_operations* file_name);
+};
+
+void read_from_file(char* name, struct  all_data_and_file_operations* file_name);
+void break_down_buffer(struct all_data_and_file_operations* file_name);
 void print_strings(char** order_array, int number_of_str, const char* restrict name);
 int strings_compare(const void* value1, const void* value2);
 void go_free(void* ptr, size_t size);
 
 int main()
 {
-    char* buffer = read_from_file("input.txt"); // как то передавал неициализированную хрень
+    struct all_data_and_file_operations file_onegin = {0, 0, NULL, 0, NULL, read_from_file, break_down_buffer};
+    //printf("BEGIN!\n");
+    file_onegin.read_from_file("input.txt", &file_onegin); // как то передавал неициализированную хрень
+    //printf("I READ!\n");
+    file_onegin.break_down_buffer(&file_onegin);
+    //printf("I BREAK DOWN BUFFER!\n");
 
-    int number_of_str = 0;
+    my_qsort(file_onegin.order_array, file_onegin.number_of_str, sizeof(char*), strings_compare);
 
-    for (int i = 0; i < sizeof(buffer)/sizeof(char); i++)
+    /*for (int i = 0; i < file_onegin.number_of_str; i++)
     {
-        if (buffer[i] == '\r')
-        {
-            buffer[i] = '\n';
-            number_of_str++;
-        }
-        else if (buffer[i] == '\n')
-        {
-            buffer[i] = '\0';
-        }
-    }
-
-    /*for (int i = 0 ; i < file_size; i++)
-    {
-        printf("%c", buffer[i]);
+        printf("%llu\n", file_onegin.order_array[i]);
     }*/
 
-    char** order_array = (char**)calloc(number_of_str, sizeof(char*));
-    order_array[0] = buffer;
-    int ord_arr_position = 1;
-
-    for (int i = 0; i < sizeof(buffer)/sizeof(char); i++)
-    {
-        if (buffer[i] == '\n' && (i + 2) < sizeof(buffer)/sizeof(char))
-        {
-            order_array[ord_arr_position++] = &buffer[i + 2];
-        }
-    }
-
-    //printf("last line: %s", order_array[number_of_str - 1]);
-    //printf("number of str: %i\n", number_of_str);
-    //printf("%i line before sort: %s\n", 1, order_array[0]);
-    /*for (int i = 0; i < number_of_str; i++)
-    {
-        printf("%i line: %s", i + 1, order_array[i]);
-    }*/
-
-    my_qsort(order_array, number_of_str, sizeof(char*), strings_compare);
-
-    /*for (int i = 0; i < number_of_str; i++)
-    {
-        printf("%llu\n", order_array[i]);
-    }*/
-
-    print_strings(order_array, number_of_str, "output.txt");
+    print_strings(file_onegin.order_array, file_onegin.number_of_str, "output.txt");
     //printf("%i line after sort: %s\n", number_of_str, order_array[number_of_str - 1]);
-    
-    
 
     return 0;
 }
 
-char* read_from_file(char* name)
+void read_from_file(char* name, struct all_data_and_file_operations* file_name)
 {
     int fd = _open(name, _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
     
@@ -97,39 +73,76 @@ char* read_from_file(char* name)
         exit(1);
     }
 
-    size_t file_size = file_info.st_size + 2*sizeof(char); //+2 под \0 и под канарейку
-    char* buffer_not_original = (char* )calloc(file_size, sizeof(char));
-    if (buffer_not_original == NULL)
+    file_name->file_size = file_info.st_size + sizeof(char); //+1 под канарейку
+    file_name->file_buffer = (char* )calloc(file_name->file_size, sizeof(char));
+    if (file_name->file_buffer == NULL)
     {
         _close(fd);
         exit(1);
     }
 
-    //printf("file_size: %llu\n", file_size);
-
-    int bytes_read = _read(fd, buffer_not_original, (unsigned int)(file_size - 2*sizeof(char)));
-    if (bytes_read == -1)
+    file_name->bytes_read = _read(fd, file_name->file_buffer, (unsigned int)(file_name->file_size - sizeof(char)));
+    if (file_name->bytes_read == -1)
     {
         perror("Ошибка при чтении файлов через _read");
-        free(buffer_not_original);
+        free(file_name->file_buffer);
         _close(fd);
         exit(1);
     }
 
-    //printf("file_size: %llu\n", file_size);
-    //printf("bytes read: %i\n", bytes_read);
+    //printf("file_size: %llu\n", file_name->file_size);
+    //printf("bytes read: %i\n", file_name->bytes_read);
 
     _close(fd);
 
-    buffer_not_original[file_size - 2] = '\0';
-    buffer_not_original[file_size - 1] = '\0';
+    file_name->file_buffer[file_name->file_size - 1] = '\0';
 
-    /*for (int i = 0 ; i < file_size; i++)
+    /*for (int i = 0 ; i < file_name->file_size; i++)
     {
-        printf("%c", buffer_not_original[i]);
+        printf("%c", file_name->file_buffer[i]);
+    }*/
+}
+
+void break_down_buffer(struct all_data_and_file_operations* file_name)
+{
+    /*for (int i = 0 ; i < file_name->file_size; i++)
+    {
+        printf("%c", file_name->file_buffer[i]);
     }*/
 
-    return buffer_not_original;
+    for (int i = 0; i < file_name->bytes_read/sizeof(char); i++)
+    {
+        if (file_name->file_buffer[i] == '\r')
+        {
+            file_name->file_buffer[i] = '\n';
+            file_name->number_of_str++;
+        }
+        else if (file_name->file_buffer[i] == '\n')
+        {
+            file_name->file_buffer[i] = '\0';
+        }
+    }
+
+    file_name->order_array = (char**)calloc(file_name->number_of_str, sizeof(char*));
+    
+    file_name->order_array[0] = file_name->file_buffer;
+    int ord_arr_position = 1;
+
+    for (int i = 0; i < file_name->bytes_read/sizeof(char); i++)
+    {
+        if (file_name->file_buffer[i] == '\n' && (i + 2) < file_name->bytes_read/sizeof(char))
+        {
+            file_name->order_array[ord_arr_position++] = &file_name->file_buffer[i + 2];
+        }
+    }
+
+    //printf("last line: %s", file_name->order_array[number_of_str - 1]);
+    //printf("number of str: %i\n", file_name->number_of_str);
+    //printf("%i line before sort: %s\n", 1, file_name->order_array[0]);
+    /*for (int i = 0; i < file_name->number_of_str; i++)
+    {
+        printf("%i line: %s", i + 1, file_name->order_array[i]);
+    }*/
 }
 
 void print_strings (char** order_array, int number_of_str, const char* restrict name)
@@ -142,6 +155,8 @@ void print_strings (char** order_array, int number_of_str, const char* restrict 
         my_fputs(order_array[i], file);
         //fputc('\n', file);
     }
+
+    fclose(file);
 }
 
 int strings_compare(const void* value1, const void* value2)
