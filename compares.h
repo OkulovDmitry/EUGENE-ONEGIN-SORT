@@ -9,6 +9,7 @@
 #include <io.h> // Для _open, _read, _close
 #include <fcntl.h>    // Для флагов открытия (типа _O_RDONLY, _O_BINARY)
 #include <sys/stat.h> // для макросов прав доступа
+#include "file_operations.h"
 
 static const char ascii[256] = {
     ['A'] = 'a', ['B'] = 'b', ['C'] = 'c', ['D'] = 'd', ['E'] = 'e', ['F'] = 'f',

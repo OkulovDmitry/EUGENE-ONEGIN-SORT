@@ -34,9 +34,9 @@ int my_fputs(const char* str, FILE* stream)
     return 0;
 }
 
-char** my_strdup(char** str, int len)
+struct str_information** my_strdup(struct str_information** str, int len)
 {
-    char** copy = malloc(len * sizeof(char*));
+    struct str_information** copy = malloc(len * sizeof(struct str_information*));
     
     if (copy == NULL) {
         return NULL; 
@@ -49,14 +49,19 @@ char** my_strdup(char** str, int len)
     return copy;
 }
 
-void print_strings (char** order_array, int number_of_str, const char* restrict name)
-{ 
+void print_strings (struct str_information** order_array, int number_of_str, const char* restrict name)
+{
     FILE* file = fopen(name, "w");
-    
-    //printf("number_of_str in print_strings: %i", number_of_str);
+    if (file == NULL)
+    {
+        perror("Не удалось открыть файл");
+        exit(1);
+    }
+
+    printf("number_of_str in print_strings: %i", number_of_str);
     for (int i = 0; i < number_of_str; i++)
     {
-        my_fputs(order_array[i], file);
+        my_fputs((char*)((size_t)(order_array[i])), file);
         //fputc('\n', file);
     }
 

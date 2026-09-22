@@ -1,6 +1,6 @@
 #include "file_operations.h"
 
-void read_from_file(const char* restrict name, struct all_data_and_file_operations* file_name)
+void read_from_file(const char* restrict name, struct data_and_file_operations* file_name)
 {
     int fd = _open(name, _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
     
@@ -46,7 +46,7 @@ void read_from_file(const char* restrict name, struct all_data_and_file_operatio
     }*/
 }
 
-void break_down_buffer(struct all_data_and_file_operations* file_name)
+void break_down_buffer(struct data_and_file_operations* file_name)
 {
     /*for (int i = 0 ; i < file_name->file_size; i++)
     {
@@ -66,16 +66,17 @@ void break_down_buffer(struct all_data_and_file_operations* file_name)
         }
     }
 
-    file_name->order_array = (char**)calloc(file_name->number_of_str, sizeof(char*));
+    file_name->order_array_of_file = (struct str_information*)calloc(file_name->number_of_str, sizeof(char*) + sizeof(size_t));
     
-    file_name->order_array[0] = file_name->file_buffer;
+    file_name->order_array_of_file[0].order_array = file_name->file_buffer;
     int ord_arr_position = 1;
 
     for (int i = 0; i < file_name->bytes_read/sizeof(char); i++)
     {
         if (file_name->file_buffer[i] == '\n' && (i + 2) < file_name->bytes_read/sizeof(char))
         {
-            file_name->order_array[ord_arr_position++] = &file_name->file_buffer[i + 2];
+            file_name->order_array_of_file[ord_arr_position++].order_array = &file_name->file_buffer[i + 2];
+            file_name->order_array_of_file[ord_arr_position - 1].size_of_lines = (size_t)(file_name->order_array_of_file[ord_arr_position].order_array - file_name->order_array_of_file[ord_arr_position - 1].order_array);
         }
     }
 
