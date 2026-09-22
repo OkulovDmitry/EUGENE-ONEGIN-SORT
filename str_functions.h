@@ -7,8 +7,8 @@
 #include <stdint.h>
 
 int my_fputs(const char str[], FILE* stream);
-int my_strcmp(const char* str1, int start_index1, const char* str2, int start_index2, int step);
-char* my_strdup(const char* str);
+char** my_strdup(char** str, int len);
 char* my_fgets(char* s, int size, FILE* stream);
+void print_strings(char** order_array, int number_of_str, const char* restrict name);
 
 #endif //STR_FUNCTIONS_H
