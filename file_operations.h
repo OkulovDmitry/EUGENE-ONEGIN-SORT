@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <time.h>
 #include <io.h> // Для _open, _read, _close
 #include <fcntl.h>    // Для флагов открытия (типа _O_RDONLY, _O_BINARY)
@@ -29,7 +30,13 @@ struct data_and_file_operations
     const char* restrict name_of_output_file;
 };
 
+void* my_memcpy(void* restrict dest, const void* restrict src, size_t n);
+
 void read_from_file(const char* restrict name, struct  data_and_file_operations* file_name);
 void break_down_buffer(struct data_and_file_operations* file_name);
+
+int my_fputs(const char str[], FILE* stream);
+char* my_fgets(char* s, int size, FILE* stream);
+void print_strings (struct str_information** ptr_array, int number_of_str, const char* restrict name);
 
 #endif //FILE_OPERATIONS_H

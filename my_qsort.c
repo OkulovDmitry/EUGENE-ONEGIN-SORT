@@ -5,7 +5,7 @@ uint64_t binsearch(void* arr, unsigned char* elem, size_t size, uint64_t left, u
     while (left < right)
     {
         uint64_t mid = (right + left) / 2;
-        int res = compare_ptr((void*)((size_t)arr + mid*size), elem);
+        int res = compare_ptr((void*)((char*)arr + mid*size), elem);
         if (res > 0) {right = mid;}
         else {left = mid + 1;}
     }
@@ -44,11 +44,21 @@ void swap_elements(void* arr, int64_t index1, int64_t index2, size_t size)
     if (index1 == index2) return;
     unsigned char* p1 = (unsigned char*)arr + index1 * size;
     unsigned char* p2 = (unsigned char*)arr + index2 * size;
-    for (size_t i = 0; i < size; i++)
+
+    while (size >= sizeof(uint64_t))
     {
-        unsigned char a = p1[i];
-        p1[i] = p2[i];
-        p2[i] = a;
+        uint64_t block64 = *(uint64_t*)p1;
+        *(uint64_t*)p1 = *(uint64_t*)p2;
+        *(uint64_t*)p2 = block64;
+        p1 += sizeof(uint64_t);
+        p2 += sizeof(uint64_t);
+        size -= sizeof(uint64_t);
+    }
+    while (size--)
+    {
+        unsigned char stock = *p1;
+        *p1++ = *p2;
+        *p2++ = stock;
     }
 }
 
@@ -66,8 +76,24 @@ void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const v
         int64_t p = -1;
         int64_t q = nmemb;
         unsigned char pivot[size];
+        int64_t pivot_index = nmemb / 2;
 
-        int64_t pivot_index = rand() % (nmemb - 1);
+        void* a = (char*)arr;
+        void* b = (char*)arr + nmemb / 2 * size;
+        void* c = (char*)arr + (nmemb - 1) * size;
+
+        if (compare_ptr(a, b) > 0)
+        {
+            if (compare_ptr(b, c) > 0) pivot_index = nmemb / 2;       // a > b > c (медиана b)
+            else if (compare_ptr(a, c) > 0) pivot_index = nmemb - 1; // a > c >= b (медиана c)
+            else pivot_index = 0;                          // c >= a > b (медиана a)
+        }
+        else
+        {
+            if (compare_ptr(a, c) > 0) pivot_index = 0;     // b >= a > c (медиана a)
+            else if (compare_ptr(b, c) > 0) pivot_index = nmemb - 1; // b > c >= a (медиана c)
+            else pivot_index = nmemb / 2;                            // c >= b >= a (медиана b)
+        }
         
         for (int i = 0; i < size; i++)
         {
@@ -81,13 +107,13 @@ void my_qsort(void* arr, uint64_t nmemb, size_t size, int (*compare_ptr)(const v
             do
             {
                 left++;
-                cmp_left = compare_ptr((void*)((size_t)arr + size*left), pivot);
+                cmp_left = compare_ptr((void*)((char*)arr + size*left), pivot);
             } while (cmp_left < 0);
 
             do
             {
                 right--;
-                cmp_right = compare_ptr((void*)((size_t)arr + size*right), pivot);
+                cmp_right = compare_ptr((void*)((char*)arr + size*right), pivot);
             } while (cmp_right > 0);
 
             if (left >= right)
