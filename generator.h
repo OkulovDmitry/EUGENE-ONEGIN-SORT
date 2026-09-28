@@ -25,5 +25,6 @@ struct rhyme_data rhyme_search(struct str_information** ptr_reverse, size_t numb
 void generate_quadratian(const struct rhyme_data* dtb, const char* scheme);
 int is_valid_poetic_line(const struct str_information* str);
 static int check_rhyme(const char* str1, size_t len1, const char* str2, size_t len2);
+void DestroyRhymeData(struct rhyme_data* db, size_t size);
 
 #endif

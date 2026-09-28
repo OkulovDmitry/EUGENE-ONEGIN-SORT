@@ -121,11 +121,13 @@ int main()
 
     generate_quadratian(&dtb, "ABAB");
     generate_quadratian(&dtb, "ABBA");
+    generate_quadratian(&dtb, "AABB");
 
     go_free((void**)&ptr_forward, valid_str_count * sizeof(struct str_information*));
     go_free((void**)&ptr_reverse, valid_str_count * sizeof(struct str_information*));
     go_free((void**)&forward_file_onegin.order_array_of_file, valid_str_count * sizeof(struct str_information));
     go_free((void**)&forward_file_onegin.file_buffer, forward_file_onegin.file_size);
+    DestroyRhymeData(&dtb, sizeof(struct rhyme_data));
     //printf("%i line after sort: %s\n", number_of_str, order_array[number_of_str - 1]);
 
     return 0;

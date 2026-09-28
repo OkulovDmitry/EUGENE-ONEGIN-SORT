@@ -33,7 +33,7 @@ void read_from_file(const char* restrict name, struct data_and_file_operations* 
         exit(1);
     }
 
-    file_name->file_size = file_info.st_size + 1*sizeof(char);
+    file_name->file_size = file_info.st_size + sizeof(char);
     file_name->file_buffer = (char* )calloc(file_name->file_size, sizeof(char));
     if (file_name->file_buffer == NULL)
     {
@@ -41,7 +41,7 @@ void read_from_file(const char* restrict name, struct data_and_file_operations* 
         exit(1);
     }
 
-    file_name->bytes_read = _read(fd, file_name->file_buffer, (unsigned int)(file_name->file_size - 1*sizeof(char)));
+    file_name->bytes_read = _read(fd, file_name->file_buffer, (unsigned int)(file_name->file_size - sizeof(char)));
     if (file_name->bytes_read == -1)
     {
         perror("Ошибка при чтении файлов через _read");
@@ -51,7 +51,7 @@ void read_from_file(const char* restrict name, struct data_and_file_operations* 
     }
 
     //printf("file_size: %llu\n", file_name->file_size);
-    //printf("bytes read: %i\n", file_name->bytes_read);
+    //printf("bytes read: %i\n", file_name->);
 
     _close(fd);
 
@@ -70,7 +70,7 @@ void break_down_buffer(struct data_and_file_operations* file_name)
         printf("%c", file_name->file_buffer[i]);
     }*/
 
-    for (int i = 0; i < file_name->bytes_read/sizeof(char); i++)
+    for (ssize_t i = 0; i < file_name->bytes_read/sizeof(char); i++)
     {
         if (file_name->file_buffer[i] == '\r')
         {
@@ -89,7 +89,7 @@ void break_down_buffer(struct data_and_file_operations* file_name)
     int ord_arr_position = 1;
     size_t line_size = 0;
 
-    for (int i = 0; i < file_name->bytes_read/sizeof(char); i++)
+    for (ssize_t i = 0; i < file_name->bytes_read/sizeof(char); i++)
     {
         line_size++;
         if (file_name->file_buffer[i] == '\n' && (i + 2) < file_name->bytes_read/sizeof(char))

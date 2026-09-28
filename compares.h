@@ -26,8 +26,7 @@ static const char ascii[256] = {
 
 int forward_strings_compare(const void* value1, const void* value2);
 int reverse_strings_compare(const void* value1, const void* value2);
-int pointers_compare(const void* value1, const void* value2);
-int my_strcmp_forward (const char* str1, int start_index1, const char* str2, int start_index2);
-int my_strcmp_reverse (const char* str1, int start_index1, const char* str2, int start_index2);
+int my_strcmp_forward (const char* str1, ssize_t start_index1, const char* str2, ssize_t start_index2);
+int my_strcmp_reverse (const char* str1, ssize_t start_index1, const char* str2, ssize_t start_index2);
 
 #endif // FILE_OPERATIONS_H

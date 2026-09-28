@@ -1,6 +1,6 @@
 #include "compares.h"
 
-int my_strcmp_forward (const char* str1, int start_index1, const char* str2, int start_index2)
+int my_strcmp_forward (const char* str1, ssize_t start_index1, const char* str2, ssize_t start_index2)
 {
     while (1)
     {
@@ -20,8 +20,8 @@ int my_strcmp_forward (const char* str1, int start_index1, const char* str2, int
             start_index2++;
         }
 
-        int stop1 = (symbol1 == 0);
-        int stop2 = (symbol2 == 0);
+        int stop1 = (symbol1 == '\0');
+        int stop2 = (symbol2 == '\0');
 
         
         if (stop1 && stop2) return 0;
@@ -38,7 +38,7 @@ int my_strcmp_forward (const char* str1, int start_index1, const char* str2, int
     }
 }
 
-int my_strcmp_reverse (const char* str1, int start_index1, const char* str2, int start_index2)
+int my_strcmp_reverse (const char* str1, ssize_t start_index1, const char* str2, ssize_t start_index2) 
 {
     while (1)
     {
@@ -100,18 +100,8 @@ int reverse_strings_compare(const void* value1, const void* value2)
     //printf("my size of first line: %llu and second line: %llu\n", value1_res->size_of_lines, value2_res->size_of_lines);
     //printf("really size of first line: %llu and second line: %llu\n", start_index1, start_index2);
 
-    int start_index1 = (int)value1_res->size_of_lines - 2;
-    int start_index2 = (int)value2_res->size_of_lines - 2;
+    ssize_t start_index1 = (ssize_t)value1_res->size_of_lines - 2;
+    ssize_t start_index2 = (ssize_t)value2_res->size_of_lines - 2;
 
     return my_strcmp_reverse(value1_res->order_array, start_index1, value2_res->order_array, start_index2);
-}
-
-int pointers_compare(const void* value1, const void* value2)
-{
-    struct str_information* value1_res = *((struct str_information**)value1);
-    struct str_information* value2_res = *((struct str_information**)value2);
-
-    if (value1_res->order_array == value2_res->order_array) {return 0;}
-    else if (value1_res->order_array < value2_res->order_array) {return -1;}
-    else {return 1;}
 }

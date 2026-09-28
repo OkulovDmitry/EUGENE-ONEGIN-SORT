@@ -14,7 +14,7 @@ int is_valid_poetic_line(const struct str_information* str)
         }
     }
 
-    return (number_of_letters >= 10);
+    return (number_of_letters >= 16);
 }
 
 static int check_rhyme(const char* str1, size_t len1, const char* str2, size_t len2)
@@ -89,5 +89,18 @@ void generate_quadratian(const struct rhyme_data* db, const char* scheme)
     } 
     else if (strcmp(scheme, "ABBA") == 0) {
         printf("%s\n%s\n%s\n%s\n", pair1.line1, pair2.line1, pair2.line2, pair1.line2);
+    }
+}
+
+void DestroyRhymeData(struct rhyme_data* db, size_t size)
+{
+    if (db != NULL)
+    {
+        memset(db, 0, size);
+        for (ssize_t i = 0; i < size/sizeof(struct rhyme_pair); i++)
+        {
+            free(db->pairs);
+        }
+        db = NULL;
     }
 }

@@ -10,6 +10,7 @@
 #include <io.h> // Для _open, _read, _close
 #include <fcntl.h>    // Для флагов открытия (типа _O_RDONLY, _O_BINARY)
 #include <sys/stat.h> // для макросов прав доступа
+#include <sys/types.h>
 
 struct str_information
 {
@@ -20,7 +21,7 @@ struct str_information
 struct data_and_file_operations
 {
     size_t file_size;
-    int bytes_read;  //int
+    ssize_t bytes_read;
     char* file_buffer;
     int number_of_str;
     struct str_information* order_array_of_file;
