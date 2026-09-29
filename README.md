@@ -11,7 +11,6 @@ A robust C console application and utility library designed to perform forward a
 * **Algorithmic Poetry**: Generates new poetic works from the source text while strictly preserving the original "Onegin stanza" structure and predefined rhyming schemes.
 * **Robust Input Validation**: Clears buffers and handles incorrect formatting gracefully.
 * **Safety Assertions**: The built-in protection system safeguards functions against NULL pointers, improper file handling, and runtime errors.
-
 > **[RU]**
 > * **Комплексная сортировка**: Выполняет лексикографическую сортировку строк романа в прямом порядке, а также обратную (рифменную) сортировку по концам строк, игнорируя регистр символов и знаки препинания.
 > * **Алгоритмическая поэзия**: Генерирует новые стихотворные произведения из исходного текста с сохранением онегинской строфы и заданных схем рифмовки.
