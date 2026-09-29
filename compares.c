@@ -86,19 +86,8 @@ int forward_strings_compare(const void* value1, const void* value2)
 
 int reverse_strings_compare(const void* value1, const void* value2)
 {
-    //printf("I in reverse_strings_compare");
-
     struct str_information* value1_res = *((struct str_information**)value1);
     struct str_information* value2_res = *((struct str_information**)value2);
-
-    /*int start_index1 = 0, start_index2 = 0;
-    while (value1_res->order_array[start_index1] != '\0') {start_index1++;}
-    while (value2_res->order_array[start_index2] != '\0') {start_index2++;}
-    start_index1--;
-    start_index2--;*/
-
-    //printf("my size of first line: %llu and second line: %llu\n", value1_res->size_of_lines, value2_res->size_of_lines);
-    //printf("really size of first line: %llu and second line: %llu\n", start_index1, start_index2);
 
     ssize_t start_index1 = (ssize_t)value1_res->size_of_lines - 2;
     ssize_t start_index2 = (ssize_t)value2_res->size_of_lines - 2;

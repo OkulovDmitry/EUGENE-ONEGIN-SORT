@@ -79,8 +79,6 @@ void generate_quadratian(const struct rhyme_data* db, const char* scheme)
     struct rhyme_pair pair1 = db->pairs[index1];
     struct rhyme_pair pair2 = db->pairs[index2];
 
-    printf("\n=== ONEGIN AI RAP (%s) ===\n\n", scheme);
-
     if (strcmp(scheme, "ABAB") == 0) {
         printf("%s\n%s\n%s\n%s\n", pair1.line1, pair2.line1, pair1.line2, pair2.line2);
     } 

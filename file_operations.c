@@ -2,7 +2,6 @@
 
 void* my_memcpy(void* restrict dest, const void* restrict src, size_t n)
 {
-    // Проверка на NULL (если n > 0)
     if (dest == NULL || src == NULL) {
         return dest;
     }
@@ -19,8 +18,8 @@ void* my_memcpy(void* restrict dest, const void* restrict src, size_t n)
 
 void read_from_file(const char* restrict name, struct data_and_file_operations* file_name)
 {
-    int fd = _open(name, _O_RDONLY | _O_BINARY); //сука ебучая запятая вместо побитового или не давала открыть файл в нормальном бинарном режиме и ебала мне мозги тем что bytes_read != file_size
-    
+    int fd = _open(name, _O_RDONLY | _O_BINARY);
+   
     if (fd == -1) {
         perror("Не удалось открыть файл");
         exit(1);
@@ -50,26 +49,14 @@ void read_from_file(const char* restrict name, struct data_and_file_operations* 
         exit(1);
     }
 
-    //printf("file_size: %llu\n", file_name->file_size);
-    //printf("bytes read: %i\n", file_name->);
-
     _close(fd);
 
     file_name->file_buffer[file_name->file_size - 1] = '\0';
 
-    /*for (int i = 0 ; i < file_name->file_size; i++)
-    {
-        printf("%c", file_name->file_buffer[i]);
-    }*/
 }
 
 void break_down_buffer(struct data_and_file_operations* file_name)
 {
-    /*for (int i = 0 ; i < file_name->file_size; i++)
-    {
-        printf("%c", file_name->file_buffer[i]);
-    }*/
-
     for (ssize_t i = 0; i < file_name->bytes_read/sizeof(char); i++)
     {
         if (file_name->file_buffer[i] == '\r')
@@ -96,22 +83,12 @@ void break_down_buffer(struct data_and_file_operations* file_name)
         {
             file_name->order_array_of_file[ord_arr_position].order_array = &file_name->file_buffer[i + 2];
             file_name->order_array_of_file[ord_arr_position - 1].size_of_lines = line_size + 1;
-            //printf("%llu\n", file_name->order_array_of_file[ord_arr_position - 1].size_of_lines);
             ord_arr_position++;
             line_size = -1;
         }
     }
 
     file_name->order_array_of_file[ord_arr_position - 1].size_of_lines = line_size;
-    //printf("%llu\n", file_name->order_array_of_file[ord_arr_position - 1].size_of_lines);
-
-    //printf("last line: %s\n", file_name->order_array_of_file[12].order_array);
-    //printf("number of str: %i\n", file_name->number_of_str);
-    //printf("%i line before sort: %s\n", 1, file_name->order_array[0]);
-    //for (int i = 0; i < file_name->number_of_str; i++)
-    //{
-    //    printf("%i line: %s", i + 1, file_name->order_array_of_file[i].order_array);
-    //}
 }
 
 char* my_fgets(char* s, int size, FILE* stream)
@@ -132,7 +109,6 @@ char* my_fgets(char* s, int size, FILE* stream)
     if (i == 0){ return NULL; }
     
     *((char*)((size_t)s+(i)*sizeof(char))) = '\0';
-    //printf("number of symbols: %i\n", i);
     return s;
 }
 
@@ -157,11 +133,9 @@ void print_strings (struct str_information** ptr_array, int number_of_str, const
         exit(1);
     }
 
-    //printf("number_of_str in print_strings: %i\n", number_of_str);
     for (int i = 0; i < number_of_str; i++)
     {
         my_fputs(ptr_array[i]->order_array, file);
-        //printf("I put '%s' in file\n", order_array_of_file->order_array_of_file[i].order_array);
     }
 
     fclose(file);

@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
-#include <io.h> // Для _open, _read, _close
-#include <fcntl.h>    // Для флагов открытия (типа _O_RDONLY, _O_BINARY)
-#include <sys/stat.h> // для макросов прав доступа
+#include <io.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include "file_operations.h"
 
 static const char ascii[256] = {
