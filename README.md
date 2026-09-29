@@ -30,26 +30,18 @@ Make sure you have `gcc` compiler installed on your system.
 ### Building the Project / [RU] Компиляция
 To compile the whole project using `gcc`, run the following command in your terminal:
 ```bash
-gcc -o solver main.c buffer_operations.c double_utils.c interface.c solve_quadratic.c unit_tests.c -lm
+gcc .\onegin.c .\my_qsort.c .\file_operations.c .\compares.c .\generator.c 
 ```
 > **[RU]** Чтобы скомпилировать весь проект с помощью `gcc`, выполните команду выше.
 
-### Running Interactive Mode / [RU] Запуск интерактивного режима
-Run the compiled binary without any arguments to start the interactive solver:
+### Running / [RU] Запуск
+Run the compiled binary without any arguments to start the program:
+*Note: Make sure `input.txt` is present in the working directory.*
 ```bash
-./solver
+./a.exe
 ```
-> **[RU]** Запустите скомпилированный файл без аргументов для перехода в диалоговый режим решения уравнений.
-
-### Running Unit Tests / [RU] Запуск Unit-тестов
-The program contains an integrated test engine. To execute unit tests, pass the `--run-tests` flag as a command-line argument:
-```bash
-./solver --run-tests
-```
-*Note: Make sure `unit_test_keys.txt` is present in the working directory.*
-
-> **[RU]** В программу встроен модуль тестирования. Чтобы запустить unit-тесты, передайте аргумент `--run-tests` при запуске.
-> *Примечание: Убедитесь, что файл `unit_test_keys.txt` находится в рабочей директории.*
+> **[RU]** Запустите скомпилированный файл без аргументов для запуска программы.
+> *Примечание: Убедитесь, что файл `input.txt` находится в рабочей директории.*
 
 ---
 
